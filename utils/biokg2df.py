@@ -1,5 +1,4 @@
 import json
-from ogb.linkproppred import LinkPropPredDataset
 from helper.encode import NumpyEncoder
 import pandas as pd
 import os
@@ -10,11 +9,13 @@ def make_conversion(edge_index):
         edge_index[new_name] = edge_index[old_name]
         del edge_index[old_name]
     return edge_index
+
 def read_mapping(mapping_path):
     mapping_dir = os.getcwd() + "/dataset/ogbl_biokg/mapping"
     mapping = pd.read_csv(os.path.join(mapping_dir, mapping_path))
     mapping['Type'] = mapping_path.split('_')[0]
     return mapping
+
 def mapfing_df():
     mapping_dir = os.getcwd() + "/dataset/ogbl_biokg/mapping"
     mappings_files = [f for f in os.listdir(mapping_dir) if 'entidx2name' in f]
@@ -34,11 +35,16 @@ def convert_biokg(sub_kg, sub_label):
         'DestinationType': split_label[2],
         'EdgeType': split_label[1]
     })
-def convert_edge_df(edge_index_json):
-    # Chuyển đổi danh sách cạnh
-    biokg_edge_list = pd.concat([convert_biokg(edge_index_json[key], key) for key in edge_index_json])
+
+def load_edge_df():
+    json_ir = os.getcwd() + '/edge_index.json'
+    with open(json_ir, 'r') as f:
+        biokg = json.load(f)
+        # Chuyển đổi danh sách cạnh
+    biokg_edge_list = pd.concat([convert_biokg(biokg[key], key) for key in biokg])
     return biokg_edge_list
-def convert_node_df(biokg_edge_list):
+
+def load_node_df(biokg_edge_list):
     # Tạo danh sách nút
     biokg_node_list = pd.DataFrame({
         'Node': pd.concat([biokg_edge_list['Origin'], biokg_edge_list['Destination']]).unique()
@@ -50,19 +56,13 @@ def convert_node_df(biokg_edge_list):
     biokg_node_list.rename(columns={'Name': 'NodeName'}, inplace=True)
 
     return biokg_node_list
-def main():
-    dataset = LinkPropPredDataset(name="ogbl-biokg", root='../dataset/')
-    graph = dataset[0]
+
+def bioKGEdgeList(graph):
     edge_index = graph["edge_index_dict"].copy()
     edge_index = make_conversion(edge_index)
     edge_index_json = json.dumps(edge_index, cls=NumpyEncoder)
-    biokg_edge_list = convert_edge_df(edge_index_json)
-    biokg_node_list = convert_node_df(biokg_edge_list)
-    print(biokg_edge_list)
-    print(biokg_node_list)
-
-
-
-
-if __name__ == "__main__":
-        main()
+    json_ir = os.getcwd() + '/edge_index.json'
+    if not os.path.exists(json_ir):
+        with open('./edge_index.json', 'a') as f:
+            f.write(edge_index_json + '\n')
+    return load_edge_df()
