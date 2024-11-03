@@ -1,5 +1,9 @@
 import torch
 import os
+import subprocess
+from tqdm import tqdm
+import time
+
 
 class CUDASetup:
     def __init__(self):
@@ -10,18 +14,32 @@ class CUDASetup:
         print(f"CUDA Available: {self.cuda_available}")
         print(f"CUDA Version: {self.cuda_version}")
 
+    def install_library(self, command):
+        # Chạy lệnh cài đặt mà không hiển thị log
+        with open(os.devnull, 'w') as devnull:
+            subprocess.run(command, stdout=devnull, stderr=devnull, shell=True)
+
     def setup(self):
         self.check_cuda()
+
         if self.cuda_available:
             print("Installing CuGraph...")
-            os.system("conda install -c rapidsai -c conda-forge -c nvidia cugraph cuda-version=12.3 -y")
-            print("Complete.")
+            conda_command = "conda install -c rapidsai -c conda-forge -c nvidia cugraph=12.3 -y"
+            self.install_library(conda_command, "CuGraph")
+            print("CuGraph installation complete.")
         else:
             print("CUDA not available.")
 
-        print("Installing Library...")
-        os.system("pip install ogb")
-        os.system("pip install torch_geometric")
-        os.system("pip install graphistry")
-        os.system("pip install scikit-network")
-        print("Complete.")
+            # Danh sách các thư viện cần cài đặt
+        libraries = [
+            "ogb",
+            "torch_geometric",
+            "graphistry",
+            "scikit-network"
+        ]
+
+        print("Installing Libraries...")
+        for library in tqdm(libraries, desc="Installing Libraries", unit="library"):
+            self.install_library(f"pip install {library}")
+
+        print("All installations complete.")
