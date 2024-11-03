@@ -17,6 +17,7 @@ class CUDASetup:
     def install_library(self, command):
         # Chạy lệnh cài đặt mà không hiển thị log
         with open(os.devnull, 'w') as devnull:
+            print(command)
             subprocess.run(command, stdout=devnull, stderr=devnull, shell=True)
 
     def setup(self):
