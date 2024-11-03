@@ -35,7 +35,8 @@ class CUDASetup:
             "ogb",
             "torch_geometric",
             "graphistry",
-            "scikit-network"
+            "scikit-network",
+            "pip install graphistry  "
         ]
 
         print("Installing Libraries...")
