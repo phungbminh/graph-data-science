@@ -25,7 +25,7 @@ class CUDASetup:
 
         if self.cuda_available:
             print("Installing CuGraph...")
-            conda_command = "conda install -c rapidsai -c conda-forge -c nvidia cugraph=12.3 -y"
+            conda_command = "conda install rapidsai::cugraph -y"
             self.install_library(conda_command)
             print("CuGraph installation complete.")
         else:
